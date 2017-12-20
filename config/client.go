@@ -155,6 +155,31 @@ func (client *Client) LoadOrCreate(deployArgs *DeployArgs) (*Config, bool, error
 		conf.GrafanaPassword = conf.ConcoursePassword
 	}
 
+	if conf.TokenPrivateKey == "" {
+		conf.TokenPrivateKey = defaultConfig.TokenPrivateKey
+	}
+	if conf.TokenPublicKey == "" {
+		conf.TokenPublicKey = defaultConfig.TokenPublicKey
+	}
+	if conf.TSAFingerprint == "" {
+		conf.TSAFingerprint = defaultConfig.TSAFingerprint
+	}
+	if conf.TSAPrivateKey == "" {
+		conf.TSAPrivateKey = defaultConfig.TSAPrivateKey
+	}
+	if conf.TSAPublicKey == "" {
+		conf.TSAPublicKey = defaultConfig.TSAPublicKey
+	}
+	if conf.WorkerFingerprint == "" {
+		conf.WorkerFingerprint = defaultConfig.WorkerFingerprint
+	}
+	if conf.WorkerPrivateKey == "" {
+		conf.WorkerPrivateKey = defaultConfig.WorkerPrivateKey
+	}
+	if conf.WorkerPublicKey == "" {
+		conf.WorkerPublicKey = defaultConfig.WorkerPublicKey
+	}
+
 	return &conf, createdNewFile, nil
 }
 
