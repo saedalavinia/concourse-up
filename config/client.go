@@ -103,7 +103,7 @@ func (client *Client) Load() (*Config, error) {
 
 // LoadOrCreate loads an existing config file from S3, or creates a default if one doesn't already exist
 func (client *Client) LoadOrCreate(deployArgs *DeployArgs) (*Config, bool, error) {
-	defaultConfig, err := generateDefaultConfig(
+	config, err := generateDefaultConfig(
 		deployArgs.IAAS,
 		client.project,
 		client.deployment(),
@@ -114,16 +114,13 @@ func (client *Client) LoadOrCreate(deployArgs *DeployArgs) (*Config, bool, error
 	if err != nil {
 		return nil, false, err
 	}
-
-	defaultConfigBytes, err := json.Marshal(defaultConfig)
+	defaultConfigBytes, err := json.Marshal(config)
 	if err != nil {
 		return nil, false, err
 	}
-
 	if err = client.iaas.EnsureBucketExists(client.configBucket()); err != nil {
 		return nil, false, err
 	}
-
 	configBytes, createdNewFile, err := client.iaas.EnsureFileExists(
 		client.configBucket(),
 		configFilePath,
@@ -132,55 +129,10 @@ func (client *Client) LoadOrCreate(deployArgs *DeployArgs) (*Config, bool, error
 	if err != nil {
 		return nil, false, err
 	}
-
-	conf := Config{}
-	if err := json.Unmarshal(configBytes, &conf); err != nil {
+	if err := json.Unmarshal(configBytes, config); err != nil {
 		return nil, false, err
 	}
-
-	// Ensure new fields are set on legacy config files
-	if conf.InfluxDBUsername == "" {
-		conf.InfluxDBUsername = defaultConfig.InfluxDBUsername
-	}
-
-	if conf.InfluxDBPassword == "" {
-		conf.InfluxDBPassword = defaultConfig.InfluxDBUsername
-	}
-
-	if conf.GrafanaUsername == "" {
-		conf.GrafanaUsername = conf.ConcourseUsername
-	}
-
-	if conf.GrafanaPassword == "" {
-		conf.GrafanaPassword = conf.ConcoursePassword
-	}
-
-	if conf.TokenPrivateKey == "" {
-		conf.TokenPrivateKey = defaultConfig.TokenPrivateKey
-	}
-	if conf.TokenPublicKey == "" {
-		conf.TokenPublicKey = defaultConfig.TokenPublicKey
-	}
-	if conf.TSAFingerprint == "" {
-		conf.TSAFingerprint = defaultConfig.TSAFingerprint
-	}
-	if conf.TSAPrivateKey == "" {
-		conf.TSAPrivateKey = defaultConfig.TSAPrivateKey
-	}
-	if conf.TSAPublicKey == "" {
-		conf.TSAPublicKey = defaultConfig.TSAPublicKey
-	}
-	if conf.WorkerFingerprint == "" {
-		conf.WorkerFingerprint = defaultConfig.WorkerFingerprint
-	}
-	if conf.WorkerPrivateKey == "" {
-		conf.WorkerPrivateKey = defaultConfig.WorkerPrivateKey
-	}
-	if conf.WorkerPublicKey == "" {
-		conf.WorkerPublicKey = defaultConfig.WorkerPublicKey
-	}
-
-	return &conf, createdNewFile, nil
+	return config, createdNewFile, nil
 }
 
 func (client *Client) deployment() string {
